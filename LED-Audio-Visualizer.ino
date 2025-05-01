@@ -4,65 +4,66 @@
 #define SAMPLES 64        // Must be a power of 2
 #define MIC_IN A0         // Use A0 for mic input
 #define LED_PIN     2     // Data pin to LEDS
-#define NUM_LEDS    64  
+#define NUM_LEDS    16*16  
 #define BRIGHTNESS  150    // LED information 
-#define LED_TYPE    WS2811
+#define LED_TYPE    WS2812B
+#define SAMPLE_FREQ 5000
 #define COLOR_ORDER GRB 
 #define BUTTON_PIN 3
-#define xres 8            // Total number of  columns in the display
-#define yres 8            // Total number of  rows in the display
+#define xres 16            // Total number of  columns in the display
+#define yres 16            // Total number of  rows in the display
 
-double vReal[SAMPLES];
-double vImag[SAMPLES];
+float vReal[SAMPLES];
+float vImag[SAMPLES];
+const uint16_t samples = 64;
+const float samplingFrequency = 5000;
 
 int Intensity[xres] = { }; // initialize Frequency Intensity to zero
-int Displacement = 1;
+int displacement = 1;
 
 CRGB leds[NUM_LEDS];            // Create LED Object
-arduinoFFT FFT = arduinoFFT();  // Create FFT object
+
+ArduinoFFT<float> FFT = ArduinoFFT<float>(vReal, vImag, SAMPLES, SAMPLE_FREQ);  // Create FFT object
 
 void setup() {
   pinMode(MIC_IN, INPUT);
   Serial.begin(115200);         //Initialize Serial
   delay(3000);                  // power-up safety delay
-  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip ); //Initialize LED strips
+  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip ); //Initialize LED strips FastLED.setCorrection(TypicalSMD5050);
   FastLED.setBrightness(BRIGHTNESS);
 }
 
 void loop() {
-  Visualizer(); 
-}
-
-void Visualizer(){
   //Collect Samples
   getSamples();
   
-  //Update Display
+  //Update display data
   displayUpdate();
   
+  //Update LEDs with data
   FastLED.show();
 }
 
 void getSamples(){
   for(int i = 0; i < SAMPLES; i++){
-    vReal[i] = analogRead(MIC_IN);
+    vReal[i] = analogRead(MIC_IN); //read sample 
     Serial.println(vReal[i]);
     vImag[i] = 0;
   }
 
   //FFT
-  FFT.Windowing(vReal, SAMPLES, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
-  FFT.Compute(vReal, vImag, SAMPLES, FFT_FORWARD);
-  FFT.ComplexToMagnitude(vReal, vImag, SAMPLES);
+  FFT.windowing(vReal, SAMPLES, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
+  FFT.compute(vReal, vImag, SAMPLES, FFT_FORWARD);
+  FFT.complexToMagnitude(vReal, vImag, SAMPLES);
 
   //Update Intensity Array
-  for(int i = 2; i < (xres*Displacement)+2; i+=Displacement){
+  for(int i = 2; i < (xres*displacement)+2; i+=displacement){
     vReal[i] = constrain(vReal[i],0 ,2047);            // set max value for input data
     vReal[i] = map(vReal[i], 0, 2047, 0, yres);        // map data to fit our display
 
-    Intensity[(i/Displacement)-2] --;                      // Decrease displayed value
-    if (vReal[i] > Intensity[(i/Displacement)-2])          // Match displayed value to measured value
-      Intensity[(i/Displacement)-2] = vReal[i];
+    Intensity[(i/displacement)-2] --;                      // Decrease displayed value
+    if (vReal[i] > Intensity[(i/displacement)-2])          // Match displayed value to measured value
+      Intensity[(i/displacement)-2] = vReal[i];
   }
 }
 
