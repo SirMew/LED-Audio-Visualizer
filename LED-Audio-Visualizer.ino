@@ -24,28 +24,20 @@ void circle(int lednum);
 uint16_t XY(uint8_t x, uint8_t y, uint8_t kMatrixWidth, uint8_t kMatrixHeight);
 
 //global parameters
-float vReal[SAMPLES];
-float vImag[SAMPLES];
-const uint16_t samples = 64;
-const float samplingFrequency = 5000;
+float g_vReal[SAMPLES];
+float g_vImag[SAMPLES];
 
-int Intensity[xres] = { }; // initialize Frequency Intensity to zero
-int displacement = 1;
-
-long unsigned heart_beat_freq = 100; // time(milliseconds) of heart beat frequency 
-long unsigned heart_beat_on_off_time; // the time the LED is on and off - 1/2 frequency 
-long unsigned last_heart_beat_time;   // time in milliseconds of last heart beat status change 
-bool heart_beat_status = HIGH;        // current status of heart beat, start high 
+int g_Intensity[xres] = { }; // initialize Frequency Intensity to zero
+int g_displacement = 1;
 
 //Create class objects
 CRGB leds[NUM_LEDS];            // Create LED Object
 
-ArduinoFFT<float> FFT = ArduinoFFT<float>(vReal, vImag, SAMPLES, SAMPLE_FREQ);  // Create FFT object
+ArduinoFFT<float> FFT = ArduinoFFT<float>(g_vReal, g_vImag, SAMPLES, SAMPLE_FREQ);  // Create FFT object
 
 void setup() {
   // initialise builtin LED for heartbeat status
   pinMode(heart_beat_pin, OUTPUT); 
-  heart_beat_on_off_time = heart_beat_freq / 2; // LED is on and off at 1/2 frequency time 
 
   // add input pin for audio input
   //pinMode(MIC_IN, INPUT);
@@ -61,10 +53,6 @@ void setup() {
   FastLED.setBrightness(BRIGHTNESS);
   FastLED.setTemperature(Tungsten100W);
 
-  // initialise builtin LED for heartbeat status
-  pinMode(heart_beat_pin, OUTPUT); 
-  heart_beat_on_off_time = heart_beat_freq / 2; // LED is on and off at 1/2 frequency time 
-
   //startup light test - loop through red, green and blue for all pixels
   startupRGB(NUM_LEDS);
   circle(NUM_LEDS);
@@ -73,7 +61,7 @@ void setup() {
 
 void loop() {
   //heartbeat function
-  heart_beat();
+  heartbeat();
 
   //Collect Samples
   //getSamples();

@@ -2,7 +2,7 @@ void displayUpdate(){
   int color = 0;
   for(int i = 0; i < xres; i++){
     for(int j = 0; j < yres; j++){
-      if(j <= Intensity[i]){                                // Light everything within the intensity range
+      if(j <= g_Intensity[i]){                                // Light everything within the intensity range
         if(j%2 == 0){
           leds[(xres*(j+1))-i-1] = CHSV(color, 255, BRIGHTNESS);
         }
