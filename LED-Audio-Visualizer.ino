@@ -6,7 +6,7 @@
 #define LED_PIN     2     // Data pin to LEDS
 #define NUM_LEDS    16*16  
 #define BRIGHTNESS  150    // LED information 
-#define LED_TYPE    WS2812B
+#define LED_TYPE    WS2811
 #define SAMPLE_FREQ 5000
 #define COLOR_ORDER GRB 
 #define BUTTON_PIN 3
@@ -15,8 +15,6 @@
 
 float vReal[SAMPLES];
 float vImag[SAMPLES];
-const uint16_t samples = 64;
-const float samplingFrequency = 5000;
 
 int Intensity[xres] = { }; // initialize Frequency Intensity to zero
 int displacement = 1;
@@ -29,7 +27,7 @@ void setup() {
   pinMode(MIC_IN, INPUT);
   Serial.begin(115200);         //Initialize Serial
   delay(3000);                  // power-up safety delay
-  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip ); //Initialize LED strips FastLED.setCorrection(TypicalSMD5050);
+  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip ); //Initialize LED strips
   FastLED.setBrightness(BRIGHTNESS);
 }
 
@@ -81,10 +79,10 @@ void displayUpdate(){
       }
       else{                                                  // Everything outside the range goes dark
         if(j%2 == 0){
-          leds[(xres*(j+1))-i-1] = CHSV(color, 255, 0);
+          leds[(xres*(j+1))-i-1] = 0x000000;
         }
         else{
-          leds[(xres*j)+i] = CHSV(color, 255, 0);
+          leds[(xres*j)+i] = 0x000000;
         }
       }
     }
